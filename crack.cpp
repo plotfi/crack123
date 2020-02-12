@@ -133,6 +133,16 @@ bool isPalidromePermutation(const std::string &str) {
   return bits.count() <= 1;
 }
 
+size_t editDistance(const std::string &ls, const std::string &ss) {
+  return (ls.size() < ss.size()) ? editDistance(ss, ls) :
+    [&ls, &ss]() {
+      unsigned edits = 0;
+      for (unsigned si = 0, li = 0; li < ls.size(); li++)
+        ((si > ss.size() || ls[li] != ss[si]) ? edits : si)++;
+      return edits;
+    }();
+}
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -146,6 +156,7 @@ int main() {
   std::cout << "isPermutation_2: " << isPermutation_2(in, in2) << "\n";
   std::cout << "url: " << URLify(url) << "\n";
   std::cout << "isPalPerm " << isPalidromePermutation(in) << "\n";
+  std::cout << "edit dist " << editDistance(in, in2) << "\n";
 
 }
 

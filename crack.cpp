@@ -135,8 +135,12 @@ bool isPalidromePermutation(const std::string &str) {
 size_t editDistance(const std::string &ls, const std::string &ss) {
   return (ls.size() < ss.size()) ? editDistance(ss, ls) : [&ls, &ss]() {
     unsigned edits = 0;
-    for (unsigned si = 0, li = 0; li < ls.size(); li++)
-      ((si > ss.size() || ls[li] != ss[si]) ? edits : si)++;
+    for (unsigned si = 0, li = 0; li < ls.size(); li++) {
+      if (si > ss.size() || ls[li] != ss[si])
+        edits++;
+      if (ls[li] == ss[si] || ls.size() == ss.size())
+        si++;
+    }
     return edits;
   }();
 }

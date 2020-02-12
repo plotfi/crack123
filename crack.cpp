@@ -1,9 +1,9 @@
-#include <iostream>
-#include <cstdio>
-#include <bitset>
-#include <vector>
 #include <algorithm>
+#include <bitset>
+#include <cstdio>
+#include <iostream>
 #include <numeric>
+#include <vector>
 
 // ** Behavioral Prep Grid:
 //
@@ -48,7 +48,6 @@
 // Cocepts: Bit Manip, Memory (stack vs heap), Recursion, Dynamic Programming,
 //          Big O Time and Space
 
-
 //// ** Question 1.1, Algo to determine if a string has unique chars,
 //                    what if you cant use datastructures?
 // Bit table technique
@@ -76,7 +75,7 @@ std::string hasUniqueChars_2(const std::string &str) {
   std::string repeatChars;
   char prev = '\0';
   for (auto c : sortedStr) {
-    if (repeatChars.size() == 0 || (c == prev&& repeatChars.back() != c))
+    if (repeatChars.size() == 0 || (c == prev && repeatChars.back() != c))
       repeatChars += c;
     prev = c;
   }
@@ -134,13 +133,12 @@ bool isPalidromePermutation(const std::string &str) {
 }
 
 size_t editDistance(const std::string &ls, const std::string &ss) {
-  return (ls.size() < ss.size()) ? editDistance(ss, ls) :
-    [&ls, &ss]() {
-      unsigned edits = 0;
-      for (unsigned si = 0, li = 0; li < ls.size(); li++)
-        ((si > ss.size() || ls[li] != ss[si]) ? edits : si)++;
-      return edits;
-    }();
+  return (ls.size() < ss.size()) ? editDistance(ss, ls) : [&ls, &ss]() {
+    unsigned edits = 0;
+    for (unsigned si = 0, li = 0; li < ls.size(); li++)
+      ((si > ss.size() || ls[li] != ss[si]) ? edits : si)++;
+    return edits;
+  }();
 }
 
 int main() {
@@ -157,6 +155,4 @@ int main() {
   std::cout << "url: " << URLify(url) << "\n";
   std::cout << "isPalPerm " << isPalidromePermutation(in) << "\n";
   std::cout << "edit dist " << editDistance(in, in2) << "\n";
-
 }
-

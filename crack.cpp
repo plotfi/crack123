@@ -148,6 +148,14 @@ size_t editDistance(const std::string &ls, const std::string &ss) {
 
 std::string compress(std::string &str) {
   std::stringstream sstr;
+
+  auto encode = [&sstr](unsigned count, char p) {
+    sstr << count
+         << (('0' <= p && p <= '9') ? "#" : "")
+         << (p == '#' ? "#" : "")
+         << p;
+  };
+
   unsigned count = 0;
   char p = str[0];
   for (auto c : str) {
@@ -156,15 +164,28 @@ std::string compress(std::string &str) {
       continue;
     }
 
-    sstr << count << p;
+    encode(count, p);
     p = c;
     count = 1;
   }
 
-  sstr << count << p;
+  encode(count, p);
   return sstr.str();
 }
 
+std::string decompress(std::string &str) {
+  std::stringstream sstr;
+  char p = '\0';
+  for (auto c : str) {
+    if (c == '#' && p == '#') {
+      sstr << c;
+    }
+
+    if (p == '#' && '0' <= c && c <= '9')
+
+  }
+  return sstr.str();
+}
 
 int main() {
   printf("hello\n");

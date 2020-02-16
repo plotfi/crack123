@@ -4,6 +4,7 @@
 #include <iostream>
 #include <numeric>
 #include <vector>
+#include <sstream>
 
 // ** Behavioral Prep Grid:
 //
@@ -145,6 +146,26 @@ size_t editDistance(const std::string &ls, const std::string &ss) {
   }();
 }
 
+std::string compress(std::string &str) {
+  std::stringstream sstr;
+  unsigned count = 0;
+  char p = str[0];
+  for (auto c : str) {
+    if (c == p) {
+      count++;
+      continue;
+    }
+
+    sstr << count << p;
+    p = c;
+    count = 1;
+  }
+
+  sstr << count << p;
+  return sstr.str();
+}
+
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -159,4 +180,5 @@ int main() {
   std::cout << "url: " << URLify(url) << "\n";
   std::cout << "isPalPerm " << isPalidromePermutation(in) << "\n";
   std::cout << "edit dist " << editDistance(in, in2) << "\n";
+  std::cout << "compress " << compress(in) << "\n";
 }

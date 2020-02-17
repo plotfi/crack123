@@ -5,6 +5,7 @@
 #include <numeric>
 #include <vector>
 #include <sstream>
+#include <set>
 
 // ** Behavioral Prep Grid:
 //
@@ -173,18 +174,42 @@ std::string compress(std::string &str) {
   return sstr.str();
 }
 
-std::string decompress(std::string &str) {
+std::string decompress(const std::string &str) {
   std::stringstream sstr;
-  char p = '\0';
-  for (auto c : str) {
-    if (c == '#' && p == '#') {
-      sstr << c;
-    }
-
-    if (p == '#' && '0' <= c && c <= '9')
-
+  for (unsigned i = 0; i < str.length(); i++) {
+    unsigned count = 0;
+    for (; '0' <= str[i] && str[i] <= '9'; i++)
+      count += (count * 10) + (str[i] - '0');
+    i += (str[i] == '#');
+    for (unsigned j = 0; j < count; j++)
+      sstr << str[i];
   }
   return sstr.str();
+}
+
+struct LL {
+  int data;
+  LL *next;
+  LL(int data, LL *next): data(data), next(next) {}
+};
+
+void dedup(LL *&head) {
+  std::set<int> dedup;
+  dedup.insert(head->data);
+  if (!head)
+    return;
+  LL *prev = head;
+  LL *curr = head->next;
+  while (curr) {
+    if (dedup.count(curr->data)) {
+      prev->next = curr->next;
+      curr = prev->next;
+      continue;
+    }
+    dedup.insert(curr->data);
+    prev = prev->next;
+    curr = curr->next;
+  }
 }
 
 int main() {
@@ -193,7 +218,7 @@ int main() {
   std::string in2;
   std::cin >> in;
   std::cin >> in2;
-  std::string url = "fuck you";
+  std::string url = "hello world";
   std::cout << "Repeats: " << hasUniqueChars(in) << "\n";
   std::cout << "Repeats (2): " << hasUniqueChars_2(in) << "\n";
   std::cout << "isPermutation: " << isPermutation(in, in2) << "\n";
@@ -202,4 +227,18 @@ int main() {
   std::cout << "isPalPerm " << isPalidromePermutation(in) << "\n";
   std::cout << "edit dist " << editDistance(in, in2) << "\n";
   std::cout << "compress " << compress(in) << "\n";
+  std::cout << "decompress " << decompress(compress(in)) << "\n";
+
+  std::vector<int> list = {2, 3, 4, 3, 2, 7, 9, 1, 1};
+  LL *head = nullptr;
+  for (auto a : list)
+    head = new LL(a, head);
+  auto printLL = [](const LL *head) {
+    for (const LL *curr = head; curr; curr = curr->next)
+      std::cout << "[" << curr->data << "]->";
+    std::cout << "//\n";
+  };
+  printLL(head);
+  dedup(head);
+  printLL(head);
 }

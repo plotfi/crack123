@@ -3,9 +3,10 @@
 #include <cstdio>
 #include <iostream>
 #include <numeric>
-#include <vector>
-#include <sstream>
 #include <set>
+#include <sstream>
+#include <vector>
+#include <memory>
 
 // ** Behavioral Prep Grid:
 //
@@ -151,10 +152,8 @@ std::string compress(std::string &str) {
   std::stringstream sstr;
 
   auto encode = [&sstr](unsigned count, char p) {
-    sstr << count
-         << (('0' <= p && p <= '9') ? "#" : "")
-         << (p == '#' ? "#" : "")
-         << p;
+    sstr << count << (('0' <= p && p <= '9') ? "#" : "")
+         << (p == '#' ? "#" : "") << p;
   };
 
   unsigned count = 0;
@@ -190,7 +189,15 @@ std::string decompress(const std::string &str) {
 struct LL {
   int data;
   LL *next;
-  LL(int data, LL *next): data(data), next(next) {}
+  LL(int data, LL *next) : data(data), next(next) {}
+};
+
+template <typename T> struct LL2 {
+  T data;
+  std::unique_ptr<LL2<T>> next;
+  LL2(T data) : data(data), next(nullptr) {}
+  LL2(T data, std::unique_ptr<LL2<T>> next)
+      : data(data), next(std::move(next)) {}
 };
 
 void dedup(LL *&head) {
@@ -210,6 +217,32 @@ void dedup(LL *&head) {
     prev = prev->next;
     curr = curr->next;
   }
+}
+
+int kthLast(LL *head, int k) {
+  unsigned count = 0;
+  for (LL *curr = head; curr; curr = curr->next)
+    count++;
+  for (LL *curr = head; curr; curr = curr->next)
+    if ((count-- - k) <= 0)
+      return curr->data;
+  return head->data;
+}
+
+void removeNode(LL *&head, const LL *node) {
+  if (!head || !node)
+    return;
+
+  for (LL *curr = head; curr; curr = curr->next)
+    if (curr->next == node) {
+      curr->next = curr->next->next;
+      break;
+    }
+
+  if (head == node)
+    head = head->next;
+
+  delete (node);
 }
 
 int main() {
@@ -241,4 +274,20 @@ int main() {
   printLL(head);
   dedup(head);
   printLL(head);
+  std::cout << "1st last: " << kthLast(head, 1) << "\n";
+  std::cout << "2nd last: " << kthLast(head, 2) << "\n";
+  std::cout << "3rd last: " << kthLast(head, 3) << "\n";
+  std::cout << "4th last: " << kthLast(head, 4) << "\n";
+  std::cout << "5th last: " << kthLast(head, 5) << "\n";
+  std::cout << "6th last: " << kthLast(head, 6) << "\n";
+  std::cout << "7th last: " << kthLast(head, 7) << "\n";
+  std::cout << "8th last: " << kthLast(head, 8) << "\n";
+
+  LL *rem = head->next->next;
+  std::cout << "Removing: [" << rem->data << "]\n";
+  removeNode(head, rem);
+  printLL(head);
+
+  std::cout << "\n";
+
 }

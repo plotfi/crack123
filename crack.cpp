@@ -2,11 +2,11 @@
 #include <bitset>
 #include <cstdio>
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <set>
 #include <sstream>
 #include <vector>
-#include <memory>
 
 // ** Behavioral Prep Grid:
 //
@@ -85,6 +85,19 @@ std::string hasUniqueChars_2(const std::string &str) {
   return repeatChars;
 }
 
+// isUnique and bail
+bool isUnique(const std::string &str) {
+  if (str.length() > 256)
+    return false;
+  std::bitset<256> charSet;
+  for (auto c : str)
+    if (charSet.test(c))
+      return false;
+    else
+      charSet.set(c);
+  return true;
+}
+
 //// ** Question 1.2
 bool isPermutation(const std::string &a, const std::string &b) {
   std::vector<size_t> charCountA;
@@ -112,6 +125,7 @@ bool isPermutation_2(const std::string &a, const std::string &b) {
   return 0 == std::accumulate(count.begin(), count.end(), 0);
 }
 
+// 1.3
 std::string URLify(const std::string &str) {
   const size_t slen = str.size() + 1;
   const size_t nlen = slen + (std::count(str.begin(), str.end(), ' ') * 3);
@@ -128,6 +142,7 @@ std::string URLify(const std::string &str) {
   return std::string(url);
 }
 
+// 1.4
 bool isPalidromePermutation(const std::string &str) {
   std::bitset<256> bits;
   for (auto c : str)
@@ -135,6 +150,7 @@ bool isPalidromePermutation(const std::string &str) {
   return bits.count() <= 1;
 }
 
+// 1.5
 size_t editDistance(const std::string &ls, const std::string &ss) {
   return (ls.size() < ss.size()) ? editDistance(ss, ls) : [&ls, &ss]() {
     unsigned edits = 0;
@@ -148,6 +164,7 @@ size_t editDistance(const std::string &ls, const std::string &ss) {
   }();
 }
 
+// 1.6
 std::string compress(std::string &str) {
   std::stringstream sstr;
 
@@ -185,6 +202,59 @@ std::string decompress(const std::string &str) {
   }
   return sstr.str();
 }
+
+// 1.7
+// 1 2 3    7 4 1
+// 4 5 6 -> 8 5 2
+// 7 8 9    9 6 3
+
+// 1 2 3    9 6 3    7 4 1
+// 4 5 6 -> 8 5 2 -> 8 5 2
+// 7 8 9    7 4 1    9 6 3
+
+template <unsigned N> void printMat(int matrix[N][N]) {
+  for (unsigned i = 0; i < N; i++) {
+    for (unsigned j = 0; j < N; j++)
+      std::cout << matrix[i][j] << " ";
+    std::cout << "\n";
+  }
+  std::cout << "\n";
+}
+
+// 1.7
+template <unsigned N> void rotateMat(int matrix[N][N]) {
+  // flip along diagonal
+  for (unsigned i = 0; i < N; i++)
+    for (unsigned j = 0; j < N - i; j++)
+      std::swap(matrix[i][j], matrix[N - 1 - j][N - 1 - i]);
+  // flip along horizontal
+  for (unsigned i = 0; i < N / 2; i++)
+    for (unsigned j = 0; j < N; j++)
+      std::swap(matrix[i][j], matrix[N - 1 - i][j]);
+}
+
+// 1.8
+template <unsigned M, unsigned N> void zeroRowCols(int matrix[M][N]) {
+  std::set<unsigned> rows;
+  std::set<unsigned> cols;
+
+  for (unsigned i = 0; i < M; i++)
+    for (unsigned j = 0; j < N; j++)
+      if (!matrix[i][j]) {
+        rows.insert(i);
+        cols.insert(j);
+      }
+
+  for (auto row : rows)
+    for (unsigned j = 0; j < N; j++)
+      matrix[row][j] = 0;
+  for (auto col : cols)
+    for (unsigned i = 0; i < M; i++)
+      matrix[i][col] = 0;
+}
+
+// 1.9
+bool isSubstring(const std::string &s1, const std::string &s2) { return false; }
 
 struct LL {
   int data;
@@ -252,6 +322,7 @@ int main() {
   std::cin >> in;
   std::cin >> in2;
   std::string url = "hello world";
+  std::cout << "isUnique: " << isUnique(in) << "\n";
   std::cout << "Repeats: " << hasUniqueChars(in) << "\n";
   std::cout << "Repeats (2): " << hasUniqueChars_2(in) << "\n";
   std::cout << "isPermutation: " << isPermutation(in, in2) << "\n";
@@ -288,6 +359,23 @@ int main() {
   removeNode(head, rem);
   printLL(head);
 
-  std::cout << "\n";
+  int mat[4][4] = {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 0, 3, 1}, {1, 2, 3, 4}};
 
+  printMat(mat);
+  rotateMat(mat);
+  printMat(mat);
+  rotateMat(mat);
+  printMat(mat);
+  rotateMat(mat);
+  printMat(mat);
+  rotateMat(mat);
+  printMat(mat);
+  zeroRowCols<4, 4>(mat);
+  printMat(mat);
+  rotateMat(mat);
+  printMat(mat);
+  printMat(mat);
+  printMat(mat);
+
+  std::cout << "\n";
 }

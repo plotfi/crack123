@@ -259,6 +259,7 @@ bool isSubstring(const std::string &s1, const std::string &s2) { return false; }
 struct LL {
   int data;
   LL *next;
+  LL(int data) : data(data), next(nullptr) {}
   LL(int data, LL *next) : data(data), next(next) {}
 };
 
@@ -270,6 +271,7 @@ template <typename T> struct LL2 {
       : data(data), next(std::move(next)) {}
 };
 
+// 2.1
 void dedup(LL *&head) {
   std::set<int> dedup;
   dedup.insert(head->data);
@@ -289,6 +291,7 @@ void dedup(LL *&head) {
   }
 }
 
+// 2.2
 int kthLast(LL *head, int k) {
   unsigned count = 0;
   for (LL *curr = head; curr; curr = curr->next)
@@ -299,6 +302,7 @@ int kthLast(LL *head, int k) {
   return head->data;
 }
 
+// 2.3
 void removeNode(LL *&head, const LL *node) {
   if (!head || !node)
     return;
@@ -313,6 +317,125 @@ void removeNode(LL *&head, const LL *node) {
     head = head->next;
 
   delete (node);
+}
+
+// 2.4
+// TODO Partition???
+
+// 2.5
+int sumListLittleEndian_toInt(LL *head1, LL *head2) {
+  int sum = 0;
+  int mul = 1;
+  while (head1 || head2) {
+
+    int val1 = 0;
+    if (head1) {
+      val1 = head1->data;
+      head1 = head1->next;
+    }
+
+    int val2 = 0;
+    if (head2) {
+      val2 = head2->data;
+      head2 = head2->next;
+    }
+
+    sum += (val1 + val2) * mul;
+    mul *= 10;
+  }
+  return sum;
+}
+
+size_t LLLength(LL *head) {
+  size_t len = 0;
+  for (; head; head = head->next)
+    len++;
+  return len;
+}
+
+int sumListBigEndian_toInt(LL *head1, LL *head2) {
+
+  size_t head1Len = LLLength(head1);
+  size_t head2Len = LLLength(head2);
+  // Assume always that head1Len >= head2Len.
+  if (head1Len < head2Len)
+    return sumListBigEndian_toInt(head2, head1);
+
+  int sum = 0;
+  while (head1Len != head2Len) {
+    sum *= 10;
+    sum += head1->data;
+    head1Len--;
+    head1 = head1->next;
+  }
+
+  while (head1 && head2) {
+    sum *= 10;
+    sum += head1->data + head2->data;
+    head1 = head1->next;
+    head2 = head2->next;
+  }
+
+  return sum;
+}
+
+LL *int_toSumListBigEndian(int sum) {
+  LL *head = nullptr;
+  for (; sum; sum /= 10)
+    head = new LL(sum % 10, head);
+  return head;
+}
+
+LL *int_toSumListLittleEndian(int sum) {
+  LL *head = nullptr;
+  LL *tail = nullptr;
+  for (; sum; sum /= 10) {
+    LL *curr = new LL(sum % 10);
+    if (!tail) {
+      head = tail = curr;
+      continue;
+    }
+
+    tail->next = curr;
+    tail = curr;
+  }
+
+  return head;
+}
+
+auto printLL = [](const LL *head) {
+  for (const LL *curr = head; curr; curr = curr->next)
+    std::cout << "[" << curr->data << "]->";
+  std::cout << "//\n";
+};
+
+// 2.6
+bool isLLPalindrome(LL *head) {
+  if (!head)
+    return true;
+
+  auto revList = [](LL *head) {
+    LL *stack = nullptr;
+    while (head) {
+      LL *curr = head;
+      head = head->next;
+      curr->next = stack;
+      stack = curr;
+    }
+    return stack;
+  };
+
+  LL *mid = head;
+  for (unsigned I = 0, MidI = LLLength(head) / 2; I <= MidI; I++)
+    mid = mid->next;
+  mid = revList(mid);
+
+  bool isPal = true;
+  for (LL *curr = mid; curr; curr = curr->next, head = head->next)
+    isPal |= (curr->data == head->data);
+
+  mid = revList(mid);
+  return isPal;
 }
 
 int main() {
@@ -337,11 +460,7 @@ int main() {
   LL *head = nullptr;
   for (auto a : list)
     head = new LL(a, head);
-  auto printLL = [](const LL *head) {
-    for (const LL *curr = head; curr; curr = curr->next)
-      std::cout << "[" << curr->data << "]->";
-    std::cout << "//\n";
-  };
+
   printLL(head);
   dedup(head);
   printLL(head);
@@ -376,6 +495,27 @@ int main() {
   printMat(mat);
   printMat(mat);
   printMat(mat);
+
+  std::cout << "sum list:\n";
+  printLL(head);
+  std::cout << "sum little: " << sumListLittleEndian_toInt(head, nullptr)
+            << "\n";
+  std::cout << "sum big: " << sumListBigEndian_toInt(head, nullptr) << "\n";
+
+  std::cout << "sum little to list: ";
+  printLL(int_toSumListLittleEndian(sumListLittleEndian_toInt(head, nullptr)));
+  std::cout << "sum big: to list: ";
+  printLL(int_toSumListBigEndian(sumListBigEndian_toInt(head, nullptr)));
+  std::cout << "\n";
+
+  std::vector<int> list2 = {2, 3, 4, 3, 2, 3, 4, 3, 2};
+  LL *palLL = nullptr;
+  for (auto a : list2)
+    palLL = new LL(a, palLL);
+
+  printLL(palLL);
+  std::cout << "isPalidrome: " << isLLPalindrome(palLL) << "\n";
+  printLL(palLL);
 
   std::cout << "\n";
 }

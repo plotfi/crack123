@@ -438,6 +438,29 @@ bool isLLPalindrome(LL *head) {
   return isPal;
 }
 
+// 2.7
+LL *listIntersect(LL *head1, LL *head2) {
+  if (!head1 || !head2) return nullptr;
+
+  size_t len1 = LLLength(head1);
+  size_t len2 = LLLength(head2);
+
+  if (len1 < len2)
+    return listIntersect(head2, head1);
+
+  for (unsigned i = 0; i < len1 - len2; i++)
+    head1 = head1->next;
+
+  while (head1) {
+    if (head1 == head2)
+      return head1;
+    head1 = head1->next;
+    head2 = head2->next;
+  }
+
+  return nullptr;
+}
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -516,6 +539,17 @@ int main() {
   printLL(palLL);
   std::cout << "isPalidrome: " << isLLPalindrome(palLL) << "\n";
   printLL(palLL);
+
+  LL foo(23, palLL);
+  std::cout << "Intersecting??\n";
+  printLL(palLL);
+  std::cout << "\n";
+  printLL(&foo);
+  std::cout << "\n";
+  std::cout << "Intersecting at: ";
+  printLL(listIntersect(palLL, &foo));
+  std::cout << "\n";
+
 
   std::cout << "\n";
 }

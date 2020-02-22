@@ -461,6 +461,23 @@ LL *listIntersect(LL *head1, LL *head2) {
   return nullptr;
 }
 
+// 2.7
+LL *detectCycle(LL *head) {
+  if (!head || !head->next)
+    return nullptr;
+
+  LL *slow = head;
+  LL *fast = head->next;
+  while (slow && fast && fast->next) {
+    if (slow == fast)
+      return slow;
+    slow = slow->next;
+    fast = fast->next->next;
+  }
+
+  return nullptr;
+}
+
 int main() {
   printf("hello\n");
   std::string in;

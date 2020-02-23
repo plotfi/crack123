@@ -478,6 +478,42 @@ LL *detectCycle(LL *head) {
   return nullptr;
 }
 
+template <unsigned n>
+class MultiStack {
+  std::vector<int> stack;
+  std::vector<unsigned> tops;
+
+  MultiStack() {
+    stack.resize(n * 10);
+    tops.resize(n);
+  }
+
+  void push(int a, unsigned i) {
+    if (tops[i] >= stack.size() / n) {
+      size_t oldSize = stack.size();
+      stack.resize(oldSize * 2);
+      for (unsigned i = n;  i != ~0U; i--) {
+        for (unsigned j = 0; j < oldSize / n; j++) {
+          stack[(i * (stack.size() / n)) + j] = stack[(i * (oldSize / n)) + j];
+        }
+      }
+    }
+
+    stack[(i * (stack.size() / n)) + tops[i]] = a;
+    tops[i]++; 
+  }
+
+  int pop(unsigned i) {
+    int a = stack[(i * (stack.size() / n)) + tops[i]];
+    tops[i]--;
+    return a;
+  }
+
+  int peak(unsigned i) {
+    return stack[(i * (stack.size() / n)) + tops[i]];
+  }
+};
+
 int main() {
   printf("hello\n");
   std::string in;

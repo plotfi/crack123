@@ -2,6 +2,7 @@
 #include <bitset>
 #include <cstdio>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <set>
@@ -480,6 +481,7 @@ LL *detectCycle(LL *head) {
   return nullptr;
 }
 
+// 3.1
 template <unsigned n> class MultiStack {
   std::vector<int> stack;
   std::vector<unsigned> tops;
@@ -615,9 +617,105 @@ void DFS(Node *graph) {
     stack.push(curr);
 
     for (auto neighbor : curr->neighbors)
-      if (neighbor && visited.find(neighbor) == visited.end())
+      if (neighbor && !visited.count(neighbor))
         stack.push(neighbor);
   }
+}
+
+// 4.1
+bool DFS2(Node *graph, const std::function<bool(Node *)> &test) {
+  if (!graph)
+    return false;
+  std::set<Node *> visited;
+  std::stack<Node *> stack;
+  stack.push(graph);
+  while (stack.size()) {
+    Node *curr = stack.top();
+    stack.pop();
+
+    if (test(curr))
+      return true;
+
+    if (visited.count(curr))
+      continue;
+
+    visited.insert(curr);
+    stack.push(curr);
+
+    for (auto neighbor : curr->neighbors)
+      if (neighbor && !visited.count(neighbor))
+        stack.push(neighbor);
+  }
+
+  return false;
+}
+
+// 4.2
+BT *minTree(const std::vector<int> &a) {
+
+  std::vector<BT *> nodes;
+  for (auto e : a)
+    nodes.push_back(new BT(e));
+
+  std::stack<std::tuple<unsigned, unsigned>> stack;
+  stack.push(std::tuple<unsigned, unsigned>(0, a.size() - 1));
+  while (stack.size()) {
+    auto range = stack.top();
+    stack.pop();
+
+    if (!((std::get<1>(range) - std::get<0>(range)) / 2))
+      continue;
+
+    unsigned i =
+        ((std::get<1>(range) - std::get<0>(range)) / 2) + std::get<0>(range);
+    unsigned l = ((i - std::get<0>(range)) / 2) + std::get<0>(range);
+    unsigned r = ((std::get<1>(range) - i) / 2) + i;
+
+    std::cout << "i: " << i << "\n";
+
+    if (i == 0 || i >= (a.size() - 1))
+      continue;
+
+    BT *root = nodes[i];
+    BT *left = nodes[l];
+    BT *right = nodes[r];
+    root->left = left;
+    root->right = right;
+
+    stack.push(std::tuple<unsigned, unsigned>(std::get<0>(range), i));
+    stack.push(std::tuple<unsigned, unsigned>(i, std::get<1>(range)));
+  }
+
+  return nodes[nodes.size() / 2];
+}
+
+// 4.3
+std::vector<std::vector<BT *>> getDepths(BT *root) {
+  if (!root)
+    return {};
+
+  std::map<unsigned, std::vector<BT *>> depthMap;
+  depthMap[0] = {root};
+  for (unsigned depth = 1; true; depth++) {
+    std::vector<BT *> depthNodes;
+    for (auto aboveNode : depthMap[depth - 1]) {
+      if (aboveNode->left)
+        depthNodes.push_back(aboveNode->left);
+      if (aboveNode->right)
+        depthNodes.push_back(aboveNode->right);
+    }
+
+    if (!depthNodes.size())
+      break;
+    depthMap[depth] = depthNodes;
+  }
+
+  std::vector<std::vector<BT *>> result;
+  result.resize(depthMap.size());
+  for (unsigned i = 0; i < depthMap.size(); i++)
+    result[i] = depthMap[i];
+
+  return result;
 }
 
 int main() {
@@ -734,6 +832,7 @@ int main() {
   Node *B = new Node(2);
   Node *C = new Node(3);
   Node *D = new Node(4);
+  Node *F = new Node(6);
 
   // 3 4 2 1
   // C D B A
@@ -748,5 +847,29 @@ int main() {
 
   std::cout << "Graph DFS: \n";
   DFS(A);
+  std::cout << "\n";
+
+  std::cout << "Graph Contains A: " << DFS2(A, [&](Node *V) { return A == V; })
+            << "\n";
+  std::cout << "Graph Contains B: " << DFS2(A, [&](Node *V) { return B == V; })
+            << "\n";
+  std::cout << "Graph Contains C: " << DFS2(A, [&](Node *V) { return C == V; })
+            << "\n";
+  std::cout << "Graph Contains F: " << DFS2(A, [&](Node *V) { return F == V; })
+            << "\n";
+
+  std::cout << "\n";
+  std::cout << "Construct Tree:\n";
+  inOrderBT(minTree({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
+
+  std::cout << "\n";
+  std::cout << "Depth Map\n";
+  for (auto depth : getDepths(root)) {
+    for (auto node : depth)
+      std::cout << node->data << " ";
+    std::cout << "\n";
+  }
+
+  std::cout << "\n";
   std::cout << "\n";
 }

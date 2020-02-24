@@ -8,6 +8,7 @@
 #include <set>
 #include <sstream>
 #include <stack>
+#include <unordered_map>
 #include <vector>
 
 // ** Behavioral Prep Grid:
@@ -718,6 +719,57 @@ std::vector<std::vector<BT *>> getDepths(BT *root) {
   return result;
 }
 
+// 4.4
+void getDepth(BT *root, std::unordered_map<BT *, unsigned> &depthMap) {
+  if (!root)
+    return;
+
+  std::stack<BT *> stack;
+  stack.push(root);
+  std::set<BT *> visited;
+
+  while (stack.size()) {
+    BT *curr = stack.top();
+    stack.pop();
+    if (visited.count(curr)) {
+      int ldepth = curr->left ? depthMap[curr->left] : 0;
+      int rdepth = curr->right ? depthMap[curr->right] : 0;
+      unsigned depth = std::max(ldepth, rdepth);
+      depthMap[curr] = depth + 1;
+      continue;
+    }
+
+    stack.push(curr);
+    visited.insert(curr);
+
+    if (curr->left)
+      stack.push(curr->left);
+
+    if (curr->right)
+      stack.push(curr->right);
+  }
+}
+
+bool isTreeBalanced(BT *root) {
+  if (!root)
+    return true;
+
+  std::unordered_map<BT *, unsigned> depthMap;
+
+  getDepth(root, depthMap);
+
+  for (auto entry : depthMap) {
+    auto curr = entry.first;
+    int ldepth = curr->left ? depthMap[curr->left] : 0;
+    int rdepth = curr->right ? depthMap[curr->right] : 0;
+    int delta = std::abs(ldepth - rdepth);
+    if (delta > 1)
+      return false;
+  }
+
+  return true;
+}
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -868,6 +920,18 @@ int main() {
     for (auto node : depth)
       std::cout << node->data << " ";
     std::cout << "\n";
+  }
+
+  std::unordered_map<BT *, unsigned> depthMap;
+
+  getDepth(root, depthMap);
+
+  for (auto entry : depthMap) {
+    auto curr = entry.first;
+    int ldepth = curr->left ? depthMap[curr->left] : 0;
+    int rdepth = curr->right ? depthMap[curr->right] : 0;
+    std::cout << " curr: " << curr->data << " depths: " << ldepth << " "
+              << rdepth << "\n";
   }
 
   std::cout << "\n";

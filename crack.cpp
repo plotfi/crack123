@@ -606,7 +606,7 @@ void DFS(Node *graph) {
   while (stack.size()) {
     Node *curr = stack.top();
     stack.pop();
-    if (visited.find(curr) != visited.end()) {
+    if (visited.count(curr)) {
       std::cout << curr->data << " ";
       continue;
     }

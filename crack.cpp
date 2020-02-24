@@ -6,6 +6,7 @@
 #include <numeric>
 #include <set>
 #include <sstream>
+#include <stack>
 #include <vector>
 
 // ** Behavioral Prep Grid:
@@ -440,7 +441,8 @@ bool isLLPalindrome(LL *head) {
 
 // 2.7
 LL *listIntersect(LL *head1, LL *head2) {
-  if (!head1 || !head2) return nullptr;
+  if (!head1 || !head2)
+    return nullptr;
 
   size_t len1 = LLLength(head1);
   size_t len2 = LLLength(head2);
@@ -478,8 +480,7 @@ LL *detectCycle(LL *head) {
   return nullptr;
 }
 
-template <unsigned n>
-class MultiStack {
+template <unsigned n> class MultiStack {
   std::vector<int> stack;
   std::vector<unsigned> tops;
 
@@ -492,7 +493,7 @@ class MultiStack {
     if (tops[i] >= stack.size() / n) {
       size_t oldSize = stack.size();
       stack.resize(oldSize * 2);
-      for (unsigned i = n;  i != ~0U; i--) {
+      for (unsigned i = n; i != ~0U; i--) {
         for (unsigned j = 0; j < oldSize / n; j++) {
           stack[(i * (stack.size() / n)) + j] = stack[(i * (oldSize / n)) + j];
         }
@@ -500,7 +501,7 @@ class MultiStack {
     }
 
     stack[(i * (stack.size() / n)) + tops[i]] = a;
-    tops[i]++; 
+    tops[i]++;
   }
 
   int pop(unsigned i) {
@@ -509,10 +510,115 @@ class MultiStack {
     return a;
   }
 
-  int peak(unsigned i) {
-    return stack[(i * (stack.size() / n)) + tops[i]];
-  }
+  int peak(unsigned i) { return stack[(i * (stack.size() / n)) + tops[i]]; }
 };
+
+struct BT {
+  int data;
+  BT *left;
+  BT *right;
+  BT(int data, BT *left, BT *right) : data(data), left(left), right(right) {}
+  BT(int data) : data(data), left(nullptr), right(nullptr) {}
+};
+
+void preOrderBT(BT *root) {
+#if 1
+  if (!root)
+    return;
+  std::stack<BT *> stack;
+  stack.push(root);
+  while (stack.size()) {
+    BT *curr = stack.top();
+    stack.pop();
+    std::cout << curr->data << " ";
+    if (curr->right)
+      stack.push(curr->right);
+    if (curr->left)
+      stack.push(curr->left);
+  }
+#endif
+}
+
+void inOrderBT(BT *root) {
+#if 1
+  if (!root)
+    return;
+  std::set<BT *> visited;
+  std::stack<BT *> stack;
+  stack.push(root);
+  while (stack.size()) {
+    BT *curr = stack.top();
+    stack.pop();
+    if (visited.find(curr) != visited.end()) {
+      std::cout << curr->data << " ";
+      continue;
+    }
+    visited.insert(curr);
+
+    if (curr->right)
+      stack.push(curr->right);
+
+    stack.push(curr);
+
+    if (curr->left)
+      stack.push(curr->left);
+  }
+#endif
+}
+
+void postOrderBT(BT *root) {
+#if 1
+  if (!root)
+    return;
+  std::set<BT *> visited;
+  std::stack<BT *> stack;
+  stack.push(root);
+  while (stack.size()) {
+    BT *curr = stack.top();
+    stack.pop();
+    if (visited.find(curr) != visited.end()) {
+      std::cout << curr->data << " ";
+      continue;
+    }
+    visited.insert(curr);
+
+    stack.push(curr);
+    if (curr->right)
+      stack.push(curr->right);
+    if (curr->left)
+      stack.push(curr->left);
+  }
+#endif
+}
+
+struct Node {
+  int data;
+  std::vector<Node *> neighbors;
+  Node(int data) : data(data) {}
+};
+
+void DFS(Node *graph) {
+  if (!graph)
+    return;
+  std::set<Node *> visited;
+  std::stack<Node *> stack;
+  stack.push(graph);
+  while (stack.size()) {
+    Node *curr = stack.top();
+    stack.pop();
+    if (visited.find(curr) != visited.end()) {
+      std::cout << curr->data << " ";
+      continue;
+    }
+
+    visited.insert(curr);
+    stack.push(curr);
+
+    for (auto neighbor : curr->neighbors)
+      if (neighbor && visited.find(neighbor) == visited.end())
+        stack.push(neighbor);
+  }
+}
 
 int main() {
   printf("hello\n");
@@ -603,6 +709,44 @@ int main() {
   printLL(listIntersect(palLL, &foo));
   std::cout << "\n";
 
+  std::cout << "\n";
 
+  /*
+                            1
+                          /   \
+                         2      5
+                        / \    / \
+                       3   4  6   7
+   */
+  BT *root = new BT(1, new BT(2, new BT(3), new BT(4)),
+                    new BT(5, new BT(6), new BT(7)));
+  std::cout << "pre-order:\n";
+  preOrderBT(root);
+  std::cout << "\n";
+  std::cout << "in-order:\n";
+  inOrderBT(root);
+  std::cout << "\n";
+  std::cout << "post-order:\n";
+  postOrderBT(root);
+  std::cout << "\n";
+
+  Node *A = new Node(1);
+  Node *B = new Node(2);
+  Node *C = new Node(3);
+  Node *D = new Node(4);
+
+  // 3 4 2 1
+  // C D B A
+
+  A->neighbors.push_back(B);
+  A->neighbors.push_back(C);
+  B->neighbors.push_back(D);
+  D->neighbors.push_back(C);
+
+  // A -> B -> D
+  //   -> C <-/
+
+  std::cout << "Graph DFS: \n";
+  DFS(A);
   std::cout << "\n";
 }

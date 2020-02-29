@@ -520,6 +520,7 @@ struct BT {
   int data;
   BT *left;
   BT *right;
+  BT *parent;
   BT(int data, BT *left, BT *right) : data(data), left(left), right(right) {}
   BT(int data) : data(data), left(nullptr), right(nullptr) {}
 };
@@ -770,6 +771,49 @@ bool isTreeBalanced(BT *root) {
   return true;
 }
 
+// 4.5
+bool isBST(BT *root) {
+  if (!root)
+    return true;
+
+  std::stack<BT *> stack;
+  stack.push(root);
+  while (stack.size()) {
+    BT *curr = stack.top();
+    stack.pop();
+
+    if (curr->right) {
+      if (curr->right->data < curr->data)
+        return false;
+      stack.push(curr->right);
+    }
+    if (curr->left) {
+      if (curr->left->data > curr->data)
+        return false;
+      stack.push(curr->left);
+    }
+  }
+
+  return true;
+}
+
+// 4.6
+BT *getNextInOrderNode(BT *node) {
+  if (!node || !node->right)
+    while (true) {
+      if (!node || !node->parent)
+        return nullptr;
+      if (node->parent->left == node)
+        return node->parent;
+      node = node->parent;
+    }
+
+  for (node = node->right; node->left; node = node->left)
+    ;
+
+  return node;
+}
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -870,6 +914,24 @@ int main() {
    */
   BT *root = new BT(1, new BT(2, new BT(3), new BT(4)),
                     new BT(5, new BT(6), new BT(7)));
+
+  root->parent = nullptr;
+  root->left->parent = root;
+  root->right->parent = root;
+  root->left->left->parent = root->left;
+  root->left->right->parent = root->left;
+  root->right->right->parent = root->right;
+  root->right->left->parent = root->right;
+
+  BT *leftmost = root;
+  while (leftmost->left)
+    leftmost = leftmost->left;
+
+  std::cout << "get next node inorder:\n";
+  for (; leftmost; leftmost = getNextInOrderNode(leftmost))
+    std::cout << "next inorder: " << leftmost->data << "\n";
+  std::cout << "\n";
+
   std::cout << "pre-order:\n";
   preOrderBT(root);
   std::cout << "\n";

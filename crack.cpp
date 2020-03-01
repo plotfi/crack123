@@ -595,11 +595,13 @@ void postOrderBT(BT *root) {
 #endif
 }
 
-struct Node {
-  int data;
-  std::vector<Node *> neighbors;
-  Node(int data) : data(data) {}
+template <typename T> struct NodeT {
+  T data;
+  std::vector<NodeT<T> *> neighbors;
+  NodeT(T data) : data(data) {}
 };
+
+using Node = NodeT<int>;
 
 void DFS(Node *graph) {
   if (!graph)
@@ -812,6 +814,60 @@ BT *getNextInOrderNode(BT *node) {
     ;
 
   return node;
+}
+
+// 4.7: reverse post order
+void printDependencyOrder(const std::vector<char> &jobs,
+                          const std::vector<std::tuple<char, char>> &deps) {
+
+  using NodeC = NodeT<char>;
+  std::map<char, NodeC *> NodeMap;
+  std::set<char> roots;
+
+  // Allocate Jobs Nodes and build root list (start with all).
+  for (auto j : jobs) {
+    if (NodeMap.find(j) == NodeMap.end())
+      NodeMap[j] = new NodeC(j);
+    roots.insert(j);
+  }
+
+  // build dependecy graph and prone the roots list.
+  for (auto dep : deps) {
+    auto S = NodeMap[std::get<0>(dep)];
+    auto D = NodeMap[std::get<1>(dep)];
+    auto II = roots.find(D->data);
+    if (II != roots.end())
+      roots.erase(II);
+    if (std::find(std::begin(S->neighbors), std::end(S->neighbors), D) ==
+        std::end(S->neighbors))
+      S->neighbors.push_back(D);
+  }
+
+  std::vector<char> RPO;
+
+  // DFS the roots.
+  std::stack<NodeC *> stack;
+  std::set<NodeC *> visited;
+  for (auto root : roots)
+    stack.push(root);
+  while (stack.size()) {
+    auto C = stack.top();
+    stack.pop();
+    if (visited.count(C)) {
+      RPO.push_front(C->data);
+      continue;
+    }
+
+    visited.insert(C);
+    stack.push(C);
+    for (auto neighbor : C->neighbors)
+      stack.push(neighbor);
+  }
+
+  std::cout << "RPO: ";
+  for (auto c : RPO)
+    std::cout << c << " ";
+  std::cout << "\n";
 }
 
 int main() {

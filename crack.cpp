@@ -597,7 +597,7 @@ void postOrderBT(BT *root) {
 
 template <typename T> struct NodeT {
   T data;
-  std::vector<NodeT<T> *> neighbors;
+  std::set<NodeT<T> *> neighbors;
   NodeT(T data) : data(data) {}
 };
 
@@ -819,9 +819,8 @@ BT *getNextInOrderNode(BT *node) {
 // 4.7: reverse post order
 void printDependencyOrder(const std::vector<char> &jobs,
                           const std::vector<std::tuple<char, char>> &deps) {
-
   using NodeC = NodeT<char>;
-  std::map<char, NodeC *> NodeMap;
+  std::unordered_map<char, NodeC *> NodeMap;
   std::set<char> roots;
 
   // Allocate Jobs Nodes and build root list (start with all).
@@ -831,41 +830,51 @@ void printDependencyOrder(const std::vector<char> &jobs,
     roots.insert(j);
   }
 
-  // build dependecy graph and prone the roots list.
+  const size_t totalDedupedJobs = roots.size();
+  // build dependecy graph and prune the roots list.
   for (auto dep : deps) {
     auto S = NodeMap[std::get<0>(dep)];
     auto D = NodeMap[std::get<1>(dep)];
     auto II = roots.find(D->data);
     if (II != roots.end())
       roots.erase(II);
-    if (std::find(std::begin(S->neighbors), std::end(S->neighbors), D) ==
-        std::end(S->neighbors))
-      S->neighbors.push_back(D);
+    S->neighbors.insert(D);
   }
 
   std::vector<char> RPO;
 
   // DFS the roots.
   std::stack<NodeC *> stack;
-  std::set<NodeC *> visited;
+  std::map<NodeC *, unsigned> visited;
   for (auto root : roots)
     stack.push(NodeMap[root]);
   while (stack.size()) {
     auto C = stack.top();
     stack.pop();
     if (visited.count(C)) {
+      visited[C]++;
       RPO.push_back(C->data);
       continue;
     }
 
-    visited.insert(C);
+    visited[C] = 0;
     stack.push(C);
-    for (auto neighbor : C->neighbors)
-      stack.push(neighbor);
+    for (auto neighbor : C->neighbors) {
+      if (!neighbor)
+        continue;
+      auto II = visited.find(neighbor);
+      if (II != visited.end() && II->second == 0)
+        std::cout << "Found cycle " << C->data << " -> " << neighbor->data
+                  << "\n";
+      if (!visited.count(neighbor))
+        stack.push(neighbor);
+    }
   }
 
-  std::reverse(RPO.begin(), RPO.end());
+  if (RPO.size() != totalDedupedJobs)
+    std::cout << "Invalid job schedule: cycle detected.\n";
 
+  std::reverse(RPO.begin(), RPO.end());
   std::cout << "RPO: ";
   for (auto c : RPO)
     std::cout << c << " ";
@@ -1009,10 +1018,10 @@ int main() {
   // 3 4 2 1
   // C D B A
 
-  A->neighbors.push_back(B);
-  A->neighbors.push_back(C);
-  B->neighbors.push_back(D);
-  D->neighbors.push_back(C);
+  A->neighbors.insert(B);
+  A->neighbors.insert(C);
+  B->neighbors.insert(D);
+  D->neighbors.insert(C);
 
   // A -> B -> D
   //   -> C <-/
@@ -1055,5 +1064,15 @@ int main() {
   }
 
   std::cout << "\n";
+  std::cout << "Print Dependency ordering:\n";
+  printDependencyOrder({'a', 'b', 'c', 'd', 'e', 'f'}, {
+                                                           {'a', 'd'},
+                                                           {'f', 'b'},
+                                                           {'b', 'd'},
+                                                           {'b', 'd'},
+                                                           {'f', 'a'},
+                                                           {'d', 'c'},
+                                                           {'c', 'f'},
+                                                       });
   std::cout << "\n";
 }

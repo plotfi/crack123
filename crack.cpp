@@ -849,12 +849,12 @@ void printDependencyOrder(const std::vector<char> &jobs,
   std::stack<NodeC *> stack;
   std::set<NodeC *> visited;
   for (auto root : roots)
-    stack.push(root);
+    stack.push(NodeMap(root));
   while (stack.size()) {
     auto C = stack.top();
     stack.pop();
     if (visited.count(C)) {
-      RPO.push_front(C->data);
+      RPO.push_back(C->data);
       continue;
     }
 
@@ -863,6 +863,8 @@ void printDependencyOrder(const std::vector<char> &jobs,
     for (auto neighbor : C->neighbors)
       stack.push(neighbor);
   }
+
+  std::reverse(RPO.begin(), RPO.end());
 
   std::cout << "RPO: ";
   for (auto c : RPO)

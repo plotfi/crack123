@@ -849,7 +849,7 @@ void printDependencyOrder(const std::vector<char> &jobs,
   std::stack<NodeC *> stack;
   std::set<NodeC *> visited;
   for (auto root : roots)
-    stack.push(NodeMap(root));
+    stack.push(NodeMap[root]);
   while (stack.size()) {
     auto C = stack.top();
     stack.pop();

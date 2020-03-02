@@ -907,6 +907,76 @@ void printDependencyOrder(const std::vector<char> &jobs,
   std::cout << "\n";
 }
 
+// 4.8 first common ancestor
+BT *firstCommonAncestor(BT *root, BT *node1, BT *node2) {
+  auto populateParentMap = [](BT *root) {
+    std::unordered_map<BT *, BT *> ParentMap;
+    std::stack<BT *> stack;
+    std::set<BT *> visited;
+    stack.push(root);
+    ParentMap[root] = nullptr;
+    while (stack.size()) {
+      auto C = stack.top();
+      stack.pop();
+      if (visited.count(C))
+        continue;
+
+      visited.insert(C);
+      stack.push(C);
+      if (C->left) {
+        stack.push(C->left);
+        ParentMap[C->left] = C;
+      }
+      if (C->right) {
+        stack.push(C->right);
+        ParentMap[C->right] = C;
+      }
+    }
+
+    return ParentMap;
+  };
+
+  auto depth = [](BT *node, std::unordered_map<BT *, BT *> &ParentMap) {
+    size_t depth = 0;
+    for (BT *curr = node; curr; curr = ParentMap[curr])
+      depth++;
+    return depth;
+  };
+
+  auto getCommonAncestor =
+      [](BT *node1, BT *node2, size_t depth1, size_t depth2,
+         std::unordered_map<BT *, BT *> &ParentMap) -> BT * {
+    if (depth1 != depth2)
+      for (unsigned i = 0; i < depth1 - depth2; i++) {
+        if (!node1)
+          break;
+        node1 = ParentMap[node1];
+      }
+
+    while (node1 && node2) {
+      if (node1 == node2)
+        return node1;
+      node1 = ParentMap[node1];
+      node2 = ParentMap[node2];
+    }
+    return nullptr;
+  };
+
+  if (!root || !node1 || !node2)
+    return nullptr;
+
+  std::unordered_map<BT *, BT *> ParentMap = populateParentMap(root);
+  size_t depth1 = depth(node1, ParentMap);
+  size_t depth2 = depth(node2, ParentMap);
+
+  if (!depth1 || !depth2)
+    return nullptr;
+
+  return depth1 < depth2
+             ? getCommonAncestor(node2, node1, depth2, depth1, ParentMap)
+             : getCommonAncestor(node1, node2, depth1, depth2, ParentMap);
+}
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -1111,5 +1181,9 @@ int main() {
                                                            {'f', 'a'},
                                                            {'d', 'c'},
                                                        });
+
+
+  std::cout << "Common ancestor: \n";
+  std::cout << firstCommonAncestor(root, root->left->right, root->left->left)->data;
   std::cout << "\n";
 }

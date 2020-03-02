@@ -9,6 +9,7 @@
 #include <sstream>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 // ** Behavioral Prep Grid:
@@ -60,7 +61,7 @@
 std::string hasUniqueChars(const std::string &str) {
   std::bitset<256> bits;
   std::bitset<256> repeat;
-  for (auto c : str)
+  for (const auto &c : str)
     if (!bits.test(c) || repeat.test(c))
       bits[c] = 1;
     else
@@ -80,7 +81,7 @@ std::string hasUniqueChars_2(const std::string &str) {
 
   std::string repeatChars;
   char prev = '\0';
-  for (auto c : sortedStr) {
+  for (const auto &c : sortedStr) {
     if (repeatChars.size() == 0 || (c == prev && repeatChars.back() != c))
       repeatChars += c;
     prev = c;
@@ -93,7 +94,7 @@ bool isUnique(const std::string &str) {
   if (str.length() > 256)
     return false;
   std::bitset<256> charSet;
-  for (auto c : str)
+  for (const auto &c : str)
     if (charSet.test(c))
       return false;
     else
@@ -105,12 +106,12 @@ bool isUnique(const std::string &str) {
 bool isPermutation(const std::string &a, const std::string &b) {
   std::vector<size_t> charCountA;
   charCountA.resize(256, 0);
-  for (auto c : a)
+  for (const auto &c : a)
     charCountA[c]++;
 
   std::vector<size_t> charCountB;
   charCountB.resize(256, 0);
-  for (auto c : b)
+  for (const auto &c : b)
     charCountB[c]++;
 
   return std::equal(charCountA.begin(), charCountA.end(), charCountB.data());
@@ -119,10 +120,10 @@ bool isPermutation(const std::string &a, const std::string &b) {
 bool isPermutation_2(const std::string &a, const std::string &b) {
   std::vector<int> count;
   count.resize(256, 0);
-  for (auto c : a)
+  for (const auto &c : a)
     count[c]++;
 
-  for (auto c : b)
+  for (const auto &c : b)
     count[c]--;
 
   return 0 == std::accumulate(count.begin(), count.end(), 0);
@@ -148,7 +149,7 @@ std::string URLify(const std::string &str) {
 // 1.4
 bool isPalidromePermutation(const std::string &str) {
   std::bitset<256> bits;
-  for (auto c : str)
+  for (const auto &c : str)
     bits.flip(c);
   return bits.count() <= 1;
 }
@@ -178,7 +179,7 @@ std::string compress(std::string &str) {
 
   unsigned count = 0;
   char p = str[0];
-  for (auto c : str) {
+  for (const auto &c : str) {
     if (c == p) {
       count++;
       continue;
@@ -248,10 +249,10 @@ template <unsigned M, unsigned N> void zeroRowCols(int matrix[M][N]) {
         cols.insert(j);
       }
 
-  for (auto row : rows)
+  for (const auto &row : rows)
     for (unsigned j = 0; j < N; j++)
       matrix[row][j] = 0;
-  for (auto col : cols)
+  for (const auto &col : cols)
     for (unsigned i = 0; i < M; i++)
       matrix[i][col] = 0;
 }
@@ -595,13 +596,13 @@ void postOrderBT(BT *root) {
 #endif
 }
 
-template <typename T> struct NodeT {
+template <typename T> struct NodeT1 {
   T data;
-  std::set<NodeT<T> *> neighbors;
-  NodeT(T data) : data(data) {}
+  std::set<NodeT1<T> *> neighbors;
+  NodeT1(T data) : data(data) {}
 };
 
-using Node = NodeT<int>;
+using Node = NodeT1<int>;
 
 void DFS(Node *graph) {
   if (!graph)
@@ -620,7 +621,7 @@ void DFS(Node *graph) {
     visited.insert(curr);
     stack.push(curr);
 
-    for (auto neighbor : curr->neighbors)
+    for (const auto &neighbor : curr->neighbors)
       if (neighbor && !visited.count(neighbor))
         stack.push(neighbor);
   }
@@ -646,7 +647,7 @@ bool DFS2(Node *graph, const std::function<bool(Node *)> &test) {
     visited.insert(curr);
     stack.push(curr);
 
-    for (auto neighbor : curr->neighbors)
+    for (const auto &neighbor : curr->neighbors)
       if (neighbor && !visited.count(neighbor))
         stack.push(neighbor);
   }
@@ -658,7 +659,7 @@ bool DFS2(Node *graph, const std::function<bool(Node *)> &test) {
 BT *minTree(const std::vector<int> &a) {
 
   std::vector<BT *> nodes;
-  for (auto e : a)
+  for (const auto &e : a)
     nodes.push_back(new BT(e));
 
   std::stack<std::tuple<unsigned, unsigned>> stack;
@@ -702,7 +703,7 @@ std::vector<std::vector<BT *>> getDepths(BT *root) {
   depthMap[0] = {root};
   for (unsigned depth = 1; true; depth++) {
     std::vector<BT *> depthNodes;
-    for (auto aboveNode : depthMap[depth - 1]) {
+    for (const auto &aboveNode : depthMap[depth - 1]) {
       if (aboveNode->left)
         depthNodes.push_back(aboveNode->left);
       if (aboveNode->right)
@@ -761,7 +762,7 @@ bool isTreeBalanced(BT *root) {
 
   getDepth(root, depthMap);
 
-  for (auto entry : depthMap) {
+  for (const auto &entry : depthMap) {
     auto curr = entry.first;
     int ldepth = curr->left ? depthMap[curr->left] : 0;
     int rdepth = curr->right ? depthMap[curr->right] : 0;
@@ -816,67 +817,92 @@ BT *getNextInOrderNode(BT *node) {
   return node;
 }
 
+template <typename T> struct NodeT {
+  T data;
+  std::set<NodeT<T> *> neighbors;
+  NodeT(T data) : data(data) {}
+};
+
 // 4.7: reverse post order
 void printDependencyOrder(const std::vector<char> &jobs,
                           const std::vector<std::tuple<char, char>> &deps) {
   using NodeC = NodeT<char>;
-  std::unordered_map<char, NodeC *> NodeMap;
-  std::set<char> roots;
+  std::unordered_map<char, std::unique_ptr<NodeC>> NodeMap;
+  std::unordered_set<char> roots;
 
   // Allocate Jobs Nodes and build root list (start with all).
-  for (auto j : jobs) {
+  for (const auto &j : jobs) {
     if (NodeMap.find(j) == NodeMap.end())
-      NodeMap[j] = new NodeC(j);
+      NodeMap[j] = std::make_unique<NodeC>(j);
     roots.insert(j);
   }
 
   const size_t totalDedupedJobs = roots.size();
   // build dependecy graph and prune the roots list.
-  for (auto dep : deps) {
-    auto S = NodeMap[std::get<0>(dep)];
-    auto D = NodeMap[std::get<1>(dep)];
+  for (const auto &dep : deps) {
+    auto S = NodeMap[std::get<0>(dep)].get();
+    auto D = NodeMap[std::get<1>(dep)].get();
     auto II = roots.find(D->data);
     if (II != roots.end())
       roots.erase(II);
     S->neighbors.insert(D);
   }
 
-  std::vector<char> RPO;
+  using Expected = std::tuple<std::vector<char>, std::string, bool>;
+  auto getRPO = [totalDedupedJobs](
+                    const std::unordered_set<char> &roots,
+                    std::unordered_map<char, std::unique_ptr<NodeC>> &NodeMap)
+      -> Expected {
+    std::vector<char> RPO;
 
-  // DFS the roots.
-  std::stack<NodeC *> stack;
-  std::map<NodeC *, unsigned> visited;
-  for (auto root : roots)
-    stack.push(NodeMap[root]);
-  while (stack.size()) {
-    auto C = stack.top();
-    stack.pop();
-    if (visited.count(C)) {
-      visited[C]++;
-      RPO.push_back(C->data);
-      continue;
-    }
-
-    visited[C] = 0;
-    stack.push(C);
-    for (auto neighbor : C->neighbors) {
-      if (!neighbor)
+    // DFS the roots.
+    std::stack<NodeC *> stack;
+    std::map<NodeC *, unsigned> visited;
+    NodeC TheRoot('\0');
+    stack.push(&TheRoot);
+    for (const auto &root : roots)
+      TheRoot.neighbors.insert(NodeMap[root].get());
+    while (stack.size()) {
+      auto C = stack.top();
+      stack.pop();
+      if (visited.count(C)) {
+        visited[C]++;
+        RPO.push_back(C->data);
         continue;
-      auto II = visited.find(neighbor);
-      if (II != visited.end() && II->second == 0)
-        std::cout << "Found cycle " << C->data << " -> " << neighbor->data
-                  << "\n";
-      if (!visited.count(neighbor))
-        stack.push(neighbor);
+      }
+
+      visited[C] = 0;
+      stack.push(C);
+      for (const auto &neighbor : C->neighbors) {
+        if (!neighbor)
+          continue;
+        auto II = visited.find(neighbor);
+        if (II != visited.end() && II->second == 0) {
+          std::cout << "Cycle: " << C->data << " " << neighbor->data << "\n";
+          return {RPO, "Encounted Cycle", false};
+        }
+
+        if (!visited.count(neighbor))
+          stack.push(neighbor);
+      }
     }
+
+    RPO.pop_back();
+    if (RPO.size() != totalDedupedJobs)
+      return {RPO, "Encounted Cycle", false};
+
+    std::reverse(RPO.begin(), RPO.end());
+    return {RPO, "SUCCESS", true};
+  };
+
+  auto [RPO, RPOErrMsg, RPOErr] = getRPO(roots, NodeMap);
+  if (!RPOErr) {
+    std::cout << "Invalid Schedule: " << RPOErrMsg << "\n";
+    return;
   }
 
-  if (RPO.size() != totalDedupedJobs)
-    std::cout << "Invalid job schedule: cycle detected.\n";
-
-  std::reverse(RPO.begin(), RPO.end());
   std::cout << "RPO: ";
-  for (auto c : RPO)
+  for (const auto &c : RPO)
     std::cout << c << " ";
   std::cout << "\n";
 }
@@ -901,7 +927,7 @@ int main() {
 
   std::vector<int> list = {2, 3, 4, 3, 2, 7, 9, 1, 1};
   LL *head = nullptr;
-  for (auto a : list)
+  for (const auto &a : list)
     head = new LL(a, head);
 
   printLL(head);
@@ -953,7 +979,7 @@ int main() {
 
   std::vector<int> list2 = {2, 3, 4, 3, 2, 3, 4, 3, 2};
   LL *palLL = nullptr;
-  for (auto a : list2)
+  for (const auto &a : list2)
     palLL = new LL(a, palLL);
 
   printLL(palLL);
@@ -1045,8 +1071,8 @@ int main() {
 
   std::cout << "\n";
   std::cout << "Depth Map\n";
-  for (auto depth : getDepths(root)) {
-    for (auto node : depth)
+  for (const auto &depth : getDepths(root)) {
+    for (const auto &node : depth)
       std::cout << node->data << " ";
     std::cout << "\n";
   }
@@ -1055,7 +1081,7 @@ int main() {
 
   getDepth(root, depthMap);
 
-  for (auto entry : depthMap) {
+  for (const auto &entry : depthMap) {
     auto curr = entry.first;
     int ldepth = curr->left ? depthMap[curr->left] : 0;
     int rdepth = curr->right ? depthMap[curr->right] : 0;
@@ -1073,6 +1099,17 @@ int main() {
                                                            {'f', 'a'},
                                                            {'d', 'c'},
                                                            {'c', 'f'},
+                                                       });
+  std::cout << "\n";
+  std::cout << "\n";
+  std::cout << "Print Dependency ordering:\n";
+  printDependencyOrder({'a', 'b', 'c', 'd', 'e', 'f'}, {
+                                                           {'a', 'd'},
+                                                           {'f', 'b'},
+                                                           {'b', 'd'},
+                                                           {'b', 'd'},
+                                                           {'f', 'a'},
+                                                           {'d', 'c'},
                                                        });
   std::cout << "\n";
 }

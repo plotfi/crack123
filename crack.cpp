@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <bitset>
+#include <cstddef>
 #include <cstdio>
 #include <iostream>
 #include <map>
@@ -977,6 +978,91 @@ BT *firstCommonAncestor(BT *root, BT *node1, BT *node2) {
              : getCommonAncestor(node1, node2, depth1, depth2, ParentMap);
 }
 
+// TODO:
+// 4.9: BST Sequence
+// 4.10: Check Subtree
+// 4.11: Random Node
+// 4.12: Path With Sums
+// 5.2: real number to string
+
+// 5.1: set bits
+unsigned setBits(unsigned N, unsigned M, unsigned i, unsigned j) {
+  const unsigned mask = (1 << (j - i + 1)) - 1;
+  return (N & (~mask << i)) | ((mask & M) << i);
+}
+
+// 5.2: get longest bit range
+unsigned getLongest(unsigned n) {
+
+  std::vector<std::tuple<unsigned, unsigned>> ranges;
+  std::unordered_map<unsigned, std::tuple<unsigned, unsigned>> HiRangeMap;
+  std::unordered_map<unsigned, std::tuple<unsigned, unsigned>> LoRangeMap;
+
+  unsigned curr = 0;
+  unsigned last = 0;
+  bool lastBitWasOne = false;
+  for (unsigned I = 1, E = 1 << 31; I != E; I <<= 1) {
+    if (n & I) {
+      if (!lastBitWasOne)
+        last = curr;
+
+      lastBitWasOne = true;
+    } else {
+      if (lastBitWasOne) {
+        ranges.push_back({last, curr - 1});
+        HiRangeMap[std::get<1>(ranges.back())] = ranges.back();
+        LoRangeMap[std::get<0>(ranges.back())] = ranges.back();
+      }
+      lastBitWasOne = false;
+    }
+
+    curr++;
+  }
+
+  unsigned max = 0;
+  for (const auto &range : ranges) {
+
+    size_t rangeSize = std::get<1>(range) - std::get<0>(range) + 1;
+    if (rangeSize > max)
+      max = rangeSize;
+
+    if (std::get<0>(range) > 0 || std::get<1>(range) < 31)
+      if (rangeSize + 1 > max)
+        max = rangeSize + 1;
+
+    std::cout << "range: " << std::get<0>(range) << " - " << std::get<1>(range)
+              << "\n";
+
+    if (std::get<0>(range) > 1) {
+      auto II = HiRangeMap.find(std::get<0>(range) - 2);
+      if (HiRangeMap.end() != II) {
+        auto sideRange = II->second;
+        size_t newRangeSize =
+            (rangeSize + 2 + (std::get<1>(sideRange) - std::get<0>(sideRange)));
+        if (newRangeSize > max)
+          max = newRangeSize;
+      }
+    }
+
+    if (std::get<1>(range) < 30) {
+      auto II = LoRangeMap.find(std::get<1>(range) + 2);
+      if (LoRangeMap.end() != II) {
+        auto sideRange = II->second;
+        size_t newRangeSize =
+            (rangeSize + 2 + (std::get<1>(sideRange) - std::get<0>(sideRange)));
+        if (newRangeSize > max)
+          max = newRangeSize;
+      }
+    }
+  }
+
+  std::cout << "max: " << max << "\n";
+  return max;
+}
+
+// find holes
+// find 2 holes, 3 holes?
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -1182,8 +1268,12 @@ int main() {
                                                            {'d', 'c'},
                                                        });
 
-
   std::cout << "Common ancestor: \n";
-  std::cout << firstCommonAncestor(root, root->left->right, root->left->left)->data;
+  std::cout
+      << firstCommonAncestor(root, root->left->right, root->left->left)->data;
+  std::cout << "\n";
+
+  getLongest(10);
+  getLongest(31);
   std::cout << "\n";
 }

@@ -1060,6 +1060,14 @@ unsigned getLongest(unsigned n) {
   return max;
 }
 
+// 4.9: Horrible permutation problem
+
+// 4.10 find sub tree in a larger tree (GVN?)
+
+// 4.11 Random Node from a binary tree
+
+// 4.12 Path with sum
+
 // find holes
 // find 2 holes, 3 holes?
 

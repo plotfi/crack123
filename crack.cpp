@@ -978,20 +978,15 @@ BT *firstCommonAncestor(BT *root, BT *node1, BT *node2) {
              : getCommonAncestor(node1, node2, depth1, depth2, ParentMap);
 }
 
-// TODO:
-// 4.9: BST Sequence
-// 4.10: Check Subtree
-// 4.11: Random Node
-// 4.12: Path With Sums
-// 5.2: real number to string
-
 // 5.1: set bits
 unsigned setBits(unsigned N, unsigned M, unsigned i, unsigned j) {
   const unsigned mask = (1 << (j - i + 1)) - 1;
   return (N & (~mask << i)) | ((mask & M) << i);
 }
 
-// 5.2: get longest bit range
+// 5.2 Binary To String
+
+// 5.3: get longest bit range
 unsigned getLongest(unsigned n) {
 
   std::vector<std::tuple<unsigned, unsigned>> ranges;
@@ -1060,8 +1055,28 @@ unsigned getLongest(unsigned n) {
   return max;
 }
 
-// find holes
-// find 2 holes, 3 holes?
+// TODO:
+// 4.9: BST Sequence
+// 4.10: Check Subtree
+// 4.11: Random Node
+// 4.12: Path With Sums
+// 5.2: real number to string
+
+// 5.4  Next Number: Given a positive integer, print the next smallest and the
+// next largest number that have the same number of 1 bits in their binary
+// representation.
+
+// 5.5 Debugger: Explain what the following code does: ( (n & (n - 1) ) e) .
+
+// 5.6 Conversion: Write a function to determine the number of bits you would
+// need to flip to convert integer A to integer B.
+
+// 5.7 Pairwise Swap: Write a program to swap odd and even bits in an integer
+// with as few instructions as possible (e.g., bit 13 and bit 1 are swapped,
+// bit 2 and bit 3 are swapped, and so on).
+
+// 5.8 Draw Line
+
 
 int main() {
   printf("hello\n");

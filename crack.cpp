@@ -1089,8 +1089,41 @@ unsigned getLongest(unsigned n) {
 // 4.11: Random Node
 // 4.12: Path With Sums
 // 5.2: real number to string
+// BFS
+
+// Dynamic Programming and Recursion
 
 
+unsigned fibNonRecursive(unsigned n) {
+  if (n < 2)
+    return n;
+
+  std::vector<unsigned> memo;
+  memo.resize(n + 1, 0);
+  memo[1] = 1;
+
+  for (unsigned i = 2; i < memo.size(); i++)
+    memo[i] = memo[i - 1] + memo[i - 2];
+
+  return memo.back();
+}
+
+unsigned fibonacci(unsigned n, std::vector<unsigned> &memo) {
+  if (memo[n] != 0)
+    return memo[n];
+
+  std::cout << "Have to calculate fib(" << n << ")\n";
+
+  unsigned fibn = n < 2 ? n : fibonacci(n - 1, memo) + fibonacci(n - 2, memo);
+  memo[n] = fibn;
+  return fibn;
+}
+
+unsigned fibonacci(unsigned n) {
+  std::vector<unsigned> memo;
+  memo.resize(n + 1, 0);
+  return fibonacci(n, memo);
+}
 
 int main() {
   printf("hello\n");
@@ -1304,5 +1337,11 @@ int main() {
 
   getLongest(10);
   getLongest(31);
+  std::cout << "\n";
+
+  std::cout << "Fib: " << fibonacci(23) << "\n";
+  std::cout << "Fib no-rev: " << fibNonRecursive(23) << "\n";
+
+  std::cout << "\n";
   std::cout << "\n";
 }

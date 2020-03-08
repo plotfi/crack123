@@ -1055,13 +1055,6 @@ unsigned getLongest(unsigned n) {
   return max;
 }
 
-// TODO:
-// 4.9: BST Sequence
-// 4.10: Check Subtree
-// 4.11: Random Node
-// 4.12: Path With Sums
-// 5.2: real number to string
-
 // 5.4  Next Number: Given a positive integer, print the next smallest and the
 // next largest number that have the same number of 1 bits in their binary
 // representation.
@@ -1089,6 +1082,15 @@ unsigned getLongest(unsigned n) {
 
 // find holes
 // find 2 holes, 3 holes?
+
+// TODO:
+// 4.9: BST Sequence
+// 4.10: Check Subtree
+// 4.11: Random Node
+// 4.12: Path With Sums
+// 5.2: real number to string
+
+
 
 int main() {
   printf("hello\n");

@@ -226,6 +226,15 @@ template <unsigned N> void printMat(int matrix[N][N]) {
   std::cout << "\n";
 }
 
+template <typename T, unsigned N> void printMatT(T matrix[N][N]) {
+  for (unsigned i = 0; i < N; i++) {
+    for (unsigned j = 0; j < N; j++)
+      std::cout << matrix[i][j] << " ";
+    std::cout << "\n";
+  }
+  std::cout << "\n";
+}
+
 // 1.7
 template <unsigned N> void rotateMat(int matrix[N][N]) {
   // flip along diagonal
@@ -1093,6 +1102,15 @@ unsigned getLongest(unsigned n) {
 
 // Dynamic Programming and Recursion
 
+unsigned superFib(unsigned n) {
+  if (n < 2)
+    return n;
+
+  unsigned b = 1;
+  for (unsigned i = 0, a = 0; i < n; i++, b += a)
+    std::swap(a, b);
+  return b;
+}
 
 unsigned fibNonRecursive(unsigned n) {
   if (n < 2)
@@ -1123,6 +1141,48 @@ unsigned fibonacci(unsigned n) {
   std::vector<unsigned> memo;
   memo.resize(n + 1, 0);
   return fibonacci(n, memo);
+}
+
+// 8.1
+unsigned steps(unsigned n) {
+  if (n < 3)
+    return n;
+  if (n == 3)
+    return 4;
+
+  std::vector<unsigned> memo;
+  memo.resize(n + 1, 0);
+  memo[0] = 0;
+  memo[1] = 1;
+  memo[2] = 2;
+  memo[3] = 4;
+
+  for (unsigned i = 4; i < n + 1; i++)
+    memo[i] = memo[i - 1] + 1 + !(i % 2) + !(i % 3);
+
+  return memo.back();
+}
+
+// 8.2 Robot
+template <unsigned N, unsigned M> unsigned findPath(const bool Grid[N][M]) {
+
+  unsigned PathGrid[N][M];
+  bzero(PathGrid, sizeof(PathGrid));
+
+  for (unsigned j = 0; j < M; j++)
+    PathGrid[0][j] = Grid[0][j] ? j : ~0U;
+
+  for (unsigned i = 1; i < N; i++)
+    for (unsigned j = 0; j < M; j++) {
+      unsigned min = (j >= i && Grid[i][j])
+                         ? std::min(PathGrid[i - 1][j], PathGrid[i][j - 1])
+                         : ~0U;
+      PathGrid[i][j] = min == ~0U ? ~0U : min + 1;
+    }
+
+  printMatT(PathGrid);
+
+  return PathGrid[N - 1][M - 1];
 }
 
 int main() {
@@ -1341,7 +1401,26 @@ int main() {
 
   std::cout << "Fib: " << fibonacci(23) << "\n";
   std::cout << "Fib no-rev: " << fibNonRecursive(23) << "\n";
+  for (unsigned i = 0; i <= 23; i++)
+    std::cout << "Fib super (" << i << "): " << superFib(i) << "\n";
 
+  std::cout << "\n";
+  std::cout << "\n";
+
+  std::cout << "steps: " << steps(5) << "\n";
+
+  std::cout << "\n";
+  std::cout << "\n";
+
+  bool grid[4][4] = {{true, true, true, true},
+                     {true, true, false, true},
+                     {true, true, true, true},
+                     {true, true, true, true}};
+
+  std::cout << "Find Path: " << findPath<4, 4>(grid) << "\n";
+
+  std::cout << "\n";
+  std::cout << "\n";
   std::cout << "\n";
   std::cout << "\n";
 }

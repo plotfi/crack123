@@ -1185,6 +1185,10 @@ template <unsigned N, unsigned M> unsigned findPath(const bool Grid[N][M]) {
   return PathGrid[N - 1][M - 1];
 }
 
+// 8.3 magic
+
+// 8.4
+
 int main() {
   printf("hello\n");
   std::string in;

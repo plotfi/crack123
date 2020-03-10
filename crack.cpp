@@ -1187,7 +1187,22 @@ template <unsigned N, unsigned M> unsigned findPath(const bool Grid[N][M]) {
 
 // 8.3 magic
 
-// 8.4
+// 8.4 powerset
+std::vector<std::string> printPowerSet(const std::set<char> &set) {
+  std::vector<char> chars;
+  std::transform(set.begin(), set.end(), std::back_inserter(chars),
+                 [](const char c) { return c; });
+
+  std::vector<std::string> sets;
+  sets.resize(1 << set.size());
+
+  for (uint64_t I = 0, E = sets.size(); I != E; I++)
+    for (uint64_t i = I, count = 0; i; i >>= 1, count++)
+      if (1 & i)
+        sets[I] += chars[count];
+
+  return sets;
+}
 
 int main() {
   printf("hello\n");
@@ -1425,6 +1440,9 @@ int main() {
 
   std::cout << "\n";
   std::cout << "\n";
+  std::cout << "print power:\n";
+  for (const auto &set : printPowerSet({'a', 'b', 'c'}))
+    std::cout << "{" << set << "}\n";
   std::cout << "\n";
   std::cout << "\n";
 }

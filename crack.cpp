@@ -1204,6 +1204,21 @@ std::vector<std::string> printPowerSet(const std::set<char> &set) {
   return sets;
 }
 
+// 8.5 product with no multiply operator
+unsigned product(unsigned a, unsigned b) {
+  unsigned product = 0;
+
+  while (a && b) {
+    unsigned sig = b;
+    while (unsigned next = (sig & (sig - 1)))
+      sig = next;
+    product += a << std::__popcount(sig - 1);
+    b &= sig - 1;
+  }
+
+  return product;
+}
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -1443,6 +1458,10 @@ int main() {
   std::cout << "print power:\n";
   for (const auto &set : printPowerSet({'a', 'b', 'c'}))
     std::cout << "{" << set << "}\n";
+  std::cout << "\n";
+  std::cout << "\n";
+  std::cout << "product: " << product(15, 35) << " --> " << 15 * 35 << "\n";
+  std::cout << "\n";
   std::cout << "\n";
   std::cout << "\n";
 }

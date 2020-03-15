@@ -1219,6 +1219,31 @@ unsigned product(unsigned a, unsigned b) {
   return product;
 }
 
+
+// 8.6 tower of hanoai wtf
+
+// 8.7
+
+// 8.11 coins: unique ways to make change
+unsigned coins(unsigned n) {
+  std::vector<unsigned> denoms = {0, 1, 5, 10, 25};
+  unsigned memo[denoms.size()][n + 1];
+
+  for (unsigned i = 0; i <= n; i++)
+    memo[0][i] = 0;
+  for (unsigned i = 0; i < denoms.size(); i++)
+    memo[i][0] = 1;
+
+  for (unsigned j = 1; j < denoms.size(); j++)
+    for (unsigned i = 1; i <= n; i++)
+      if (i < denoms[j])
+        memo[j][i] = memo[j - 1][i];
+      else
+        memo[j][i] = memo[j - 1][i] + memo[j][i - denoms[j]];
+
+  return memo[denoms.size() - 1][n];
+}
+
 int main() {
   printf("hello\n");
   std::string in;
@@ -1461,6 +1486,10 @@ int main() {
   std::cout << "\n";
   std::cout << "\n";
   std::cout << "product: " << product(15, 35) << " --> " << 15 * 35 << "\n";
+  std::cout << "\n";
+  std::cout << "\n";
+  for (unsigned i = 0; i < 101; i++)
+  std::cout << "coins: " << i << " " << coins(i) << "\n";
   std::cout << "\n";
   std::cout << "\n";
   std::cout << "\n";

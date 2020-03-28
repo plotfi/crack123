@@ -2,6 +2,8 @@
 #include <bitset>
 #include <cstddef>
 #include <cstdio>
+#include <cstring>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -12,6 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <climits>
 
 // ** Behavioral Prep Grid:
 //
@@ -1208,11 +1211,16 @@ std::vector<std::string> printPowerSet(const std::set<char> &set) {
 unsigned product(unsigned a, unsigned b) {
   unsigned product = 0;
 
+  auto popcount = [](unsigned c) {
+    return std::bitset<sizeof(c) * CHAR_BIT>(c).count();
+  };
+
   while (a && b) {
     unsigned sig = b;
     while (unsigned next = (sig & (sig - 1)))
       sig = next;
-    product += a << std::__popcount(sig - 1);
+    std::bitset<sizeof(sig)> foo;
+    product += a << popcount(sig - 1);
     b &= sig - 1;
   }
 

@@ -1219,7 +1219,6 @@ unsigned product(unsigned a, unsigned b) {
     unsigned sig = b;
     while (unsigned next = (sig & (sig - 1)))
       sig = next;
-    std::bitset<sizeof(sig)> foo;
     product += a << popcount(sig - 1);
     b &= sig - 1;
   }

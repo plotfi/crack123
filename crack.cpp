@@ -2,10 +2,12 @@
 #include <arpa/inet.h>
 #include <bitset>
 #include <climits>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <endian.h>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -17,8 +19,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <endian.h>
-#include <cmath>
 
 // ** Behavioral Prep Grid:
 //
@@ -1278,7 +1278,7 @@ void *mymemcpy(void *dst, const void *src, size_t n) {
   const uint64_t shift = ((sizeof(uint64_t) - misAlignDelta) * 8);
   const uint64_t mask = ((1LL << shift) - 1LL);
   const uint64_t skip =
-    dstMisAligned + (dstMisAligned < srcMisAligned ? sizeof(uint64_t) : 0);
+      dstMisAligned + (dstMisAligned < srcMisAligned ? sizeof(uint64_t) : 0);
   const unsigned totalChunks = ((n - skip) / sizeof(uint64_t));
   const unsigned rem = n - (totalChunks * sizeof(uint64_t)) - skip;
   auto dstPtr = (uint64_t *)dst;
@@ -1568,7 +1568,7 @@ int main() {
 
   char buffer[1024];
   const char *sofa = "I am sofa king we todd ed...............................";
-  char *sofa2 = (char*)sofa;
+  char *sofa2 = (char *)sofa;
   mymemcpy(buffer, sofa2, 26);
   std::cout << "printing message: " << (char *)buffer << "\n";
   std::cout << "\n";

@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <endian.h>
+#include <cmath>
 
 // ** Behavioral Prep Grid:
 //
@@ -1261,94 +1263,58 @@ void *mymemcpy(void *dst, const void *src, size_t n) {
       *dstPtr++ = *srcPtr++;
     dst = dstPtr;
     src = srcPtr;
-    return dst;
   };
 
-  if (n < sizeof(uint32_t))
-    return bytecpy(dst, src, n);
+  void *originalDst = dst;
+  if (n < sizeof(uint64_t)) {
+    bytecpy(dst, src, n);
+    return originalDst;
+  }
 
-  uintptr_t dstMisAligned = ((uintptr_t)dst) % sizeof(uint32_t);
-  uintptr_t srcMisAligned = ((uintptr_t)src) % sizeof(uint32_t);
+  const uint64_t dstMisAligned = ((uintptr_t)dst) % sizeof(uint64_t);
+  const uint64_t srcMisAligned = ((uintptr_t)src) % sizeof(uint64_t);
+  const unsigned misAlignDelta = std::max(dstMisAligned, srcMisAligned) -
+                                 std::min(dstMisAligned, srcMisAligned);
+  const uint64_t shift = ((sizeof(uint64_t) - misAlignDelta) * 8);
+  const uint64_t mask = ((1LL << shift) - 1LL);
+  const uint64_t skip =
+    dstMisAligned + (dstMisAligned < srcMisAligned ? sizeof(uint64_t) : 0);
+  const unsigned totalChunks = ((n - skip) / sizeof(uint64_t));
+  const unsigned rem = n - (totalChunks * sizeof(uint64_t)) - skip;
+  auto dstPtr = (uint64_t *)dst;
+
+  bytecpy(dst, src, skip);
 
   if (dstMisAligned == srcMisAligned) {
-
-    if (dstMisAligned)
-      bytecpy(dst, src, dstMisAligned);
-
-    const unsigned totalChunks = ((n - dstMisAligned) / sizeof(uint32_t));
-    const unsigned rem = n - (totalChunks * sizeof(uint32_t)) - dstMisAligned;
-
-    auto dstPtr = (uint32_t *)dst;
-    auto srcPtr = (const uint32_t *)src;
+    auto srcPtr = (const uint64_t *)src;
     for (unsigned i = 0; i < totalChunks; i++)
       *dstPtr++ = *srcPtr++;
-    dst = dstPtr;
     src = srcPtr;
-
-    if (rem)
-      bytecpy(dst, src, rem);
-
-    return dst;
-  }
-
-  if (dstMisAligned > srcMisAligned) {
-
-    bytecpy(dst, src, dstMisAligned);
-
-    const unsigned misAlignDelta = dstMisAligned - srcMisAligned;
-    const unsigned totalChunks = ((n - dstMisAligned) / sizeof(uint32_t));
-    const unsigned rem = n - (totalChunks * sizeof(uint32_t)) - dstMisAligned;
-
-    auto dstPtr = (uint32_t *)dst;
-    auto srcPtr = (const uint32_t *)(((const char *)src) - misAlignDelta);
+  } else if (dstMisAligned > srcMisAligned) {
+    auto srcPtr = (const uint64_t *)(((const char *)src) - misAlignDelta);
     for (unsigned i = 0; i < totalChunks; i++) {
-      *dstPtr = ntohl(htonl(*srcPtr) << (misAlignDelta * 8) |
-                      htonl(*(srcPtr + 1)) >>
-                          ((sizeof(uint32_t) - misAlignDelta) * 8));
-      dstPtr++;
+      uint64_t result1 = htobe64(*srcPtr) << (misAlignDelta * 8);
+      uint64_t result2 = htobe64(*(srcPtr + 1)) >> shift;
+      *dstPtr++ = be64toh(result1 | result2);
       srcPtr++;
     }
-    dst = dstPtr;
     src = srcPtr;
     src = ((char *)src) + misAlignDelta;
-
-    if (rem)
-      bytecpy(dst, src, rem);
-
-    return dst;
-  }
-
-  if (dstMisAligned < srcMisAligned) {
-
-    bytecpy(dst, src, dstMisAligned + sizeof(uint32_t));
-
-    const unsigned misAlignDelta = srcMisAligned - dstMisAligned;
-    const unsigned totalChunks =
-        ((n - (dstMisAligned + sizeof(uint32_t))) / sizeof(uint32_t));
-    const unsigned rem = n - (totalChunks * sizeof(uint32_t)) -
-                         (dstMisAligned + sizeof(uint32_t));
-
-    auto dstPtr = (uint32_t *)dst;
-    auto srcPtr = (const uint32_t *)(((const char *)src) + misAlignDelta);
+  } else if (dstMisAligned < srcMisAligned) {
+    auto srcPtr = (const uint64_t *)(((const char *)src) + misAlignDelta);
     for (unsigned i = 0; i < totalChunks; i++) {
-      uint32_t result1 = htonl(*srcPtr) >> (misAlignDelta * 8) &
-                         ((1 << ((sizeof(uint32_t) - misAlignDelta) * 8)) - 1);
-      uint32_t result2 = htonl(*(srcPtr - 1))
-                         << ((sizeof(uint32_t) - misAlignDelta) * 8);
-      *dstPtr++ = ntohl(result1 | result2);
+      uint64_t result1 = (htobe64(*srcPtr) >> (misAlignDelta * 8)) & mask;
+      uint64_t result2 = (htobe64(*(srcPtr - 1)) << shift);
+      *dstPtr++ = be64toh(result1 | result2);
       srcPtr++;
     }
-    dst = dstPtr;
     src = srcPtr;
     src = ((char *)src) - misAlignDelta;
-
-    if (rem)
-      bytecpy(dst, src, rem);
-
-    return dst;
   }
 
-  return bytecpy(dst, src, n);
+  dst = dstPtr;
+  bytecpy(dst, src, rem);
+  return originalDst;
 }
 
 int main() {
@@ -1603,17 +1569,6 @@ int main() {
   char buffer[1024];
   const char *sofa = "I am sofa king we todd ed...............................";
   char *sofa2 = (char*)sofa;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
-  sofa2++;
   mymemcpy(buffer, sofa2, 26);
   std::cout << "printing message: " << (char *)buffer << "\n";
   std::cout << "\n";

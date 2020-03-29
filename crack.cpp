@@ -1,6 +1,9 @@
 #include <algorithm>
+#include <arpa/inet.h>
 #include <bitset>
+#include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <functional>
@@ -14,7 +17,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <climits>
 
 // ** Behavioral Prep Grid:
 //
@@ -1226,7 +1228,6 @@ unsigned product(unsigned a, unsigned b) {
   return product;
 }
 
-
 // 8.6 tower of hanoai wtf
 
 // 8.7
@@ -1251,12 +1252,111 @@ unsigned coins(unsigned n) {
   return memo[denoms.size() - 1][n];
 }
 
+void *mymemcpy(void *dst, const void *src, size_t n) {
+
+  auto bytecpy = [](void *&dst, const void *&src, size_t n) {
+    auto dstPtr = (char *)dst;
+    auto srcPtr = (const char *)src;
+    while (n--)
+      *dstPtr++ = *srcPtr++;
+    dst = dstPtr;
+    src = srcPtr;
+    return dst;
+  };
+
+  if (n < sizeof(uint32_t))
+    return bytecpy(dst, src, n);
+
+  uintptr_t dstMisAligned = ((uintptr_t)dst) % sizeof(uint32_t);
+  uintptr_t srcMisAligned = ((uintptr_t)src) % sizeof(uint32_t);
+
+  if (dstMisAligned == srcMisAligned) {
+
+    if (dstMisAligned)
+      bytecpy(dst, src, dstMisAligned);
+
+    const unsigned totalChunks = ((n - dstMisAligned) / sizeof(uint32_t));
+    const unsigned rem = n - (totalChunks * sizeof(uint32_t)) - dstMisAligned;
+
+    auto dstPtr = (uint32_t *)dst;
+    auto srcPtr = (const uint32_t *)src;
+    for (unsigned i = 0; i < totalChunks; i++)
+      *dstPtr++ = *srcPtr++;
+    dst = dstPtr;
+    src = srcPtr;
+
+    if (rem)
+      bytecpy(dst, src, rem);
+
+    return dst;
+  }
+
+  if (dstMisAligned > srcMisAligned) {
+
+    bytecpy(dst, src, dstMisAligned);
+
+    const unsigned misAlignDelta = dstMisAligned - srcMisAligned;
+    const unsigned totalChunks = ((n - dstMisAligned) / sizeof(uint32_t));
+    const unsigned rem = n - (totalChunks * sizeof(uint32_t)) - dstMisAligned;
+
+    auto dstPtr = (uint32_t *)dst;
+    auto srcPtr = (const uint32_t *)(((const char *)src) - misAlignDelta);
+    for (unsigned i = 0; i < totalChunks; i++) {
+      *dstPtr = ntohl(htonl(*srcPtr) << (misAlignDelta * 8) |
+                      htonl(*(srcPtr + 1)) >>
+                          ((sizeof(uint32_t) - misAlignDelta) * 8));
+      dstPtr++;
+      srcPtr++;
+    }
+    dst = dstPtr;
+    src = srcPtr;
+    src = ((char *)src) + misAlignDelta;
+
+    if (rem)
+      bytecpy(dst, src, rem);
+
+    return dst;
+  }
+
+  if (dstMisAligned < srcMisAligned) {
+
+    bytecpy(dst, src, dstMisAligned + sizeof(uint32_t));
+
+    const unsigned misAlignDelta = srcMisAligned - dstMisAligned;
+    const unsigned totalChunks =
+        ((n - (dstMisAligned + sizeof(uint32_t))) / sizeof(uint32_t));
+    const unsigned rem = n - (totalChunks * sizeof(uint32_t)) -
+                         (dstMisAligned + sizeof(uint32_t));
+
+    auto dstPtr = (uint32_t *)dst;
+    auto srcPtr = (const uint32_t *)(((const char *)src) + misAlignDelta);
+    for (unsigned i = 0; i < totalChunks; i++) {
+      uint32_t result1 = htonl(*srcPtr) >> (misAlignDelta * 8) &
+                         ((1 << ((sizeof(uint32_t) - misAlignDelta) * 8)) - 1);
+      uint32_t result2 = htonl(*(srcPtr - 1))
+                         << ((sizeof(uint32_t) - misAlignDelta) * 8);
+      *dstPtr++ = ntohl(result1 | result2);
+      srcPtr++;
+    }
+    dst = dstPtr;
+    src = srcPtr;
+    src = ((char *)src) - misAlignDelta;
+
+    if (rem)
+      bytecpy(dst, src, rem);
+
+    return dst;
+  }
+
+  return bytecpy(dst, src, n);
+}
+
 int main() {
   printf("hello\n");
-  std::string in;
-  std::string in2;
-  std::cin >> in;
-  std::cin >> in2;
+  std::string in = "foo";
+  std::string in2 = "bar";
+  // std::cin >> in;
+  // std::cin >> in2;
   std::string url = "hello world";
   std::cout << "isUnique: " << isUnique(in) << "\n";
   std::cout << "Repeats: " << hasUniqueChars(in) << "\n";
@@ -1496,7 +1596,26 @@ int main() {
   std::cout << "\n";
   std::cout << "\n";
   for (unsigned i = 0; i < 101; i++)
-  std::cout << "coins: " << i << " " << coins(i) << "\n";
+    std::cout << "coins: " << i << " " << coins(i) << "\n";
+  std::cout << "\n";
+  std::cout << "\n";
+
+  char buffer[1024];
+  const char *sofa = "I am sofa king we todd ed...............................";
+  char *sofa2 = (char*)sofa;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  sofa2++;
+  mymemcpy(buffer, sofa2, 26);
+  std::cout << "printing message: " << (char *)buffer << "\n";
   std::cout << "\n";
   std::cout << "\n";
   std::cout << "\n";

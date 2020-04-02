@@ -7,7 +7,14 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#ifdef __APPLE__
+#include <machine/endian.h>
+#include <libkern/OSByteOrder.h>
+#define htobe64(x) OSSwapHostToBigInt64(x)
+#define be64toh(x) OSSwapBigToHostInt64(x)
+#else
 #include <endian.h>
+#endif
 #include <functional>
 #include <iostream>
 #include <map>
@@ -1315,6 +1322,29 @@ void *mymemcpy(void *dst, const void *src, size_t n) {
   dst = dstPtr;
   bytecpy(dst, src, rem);
   return originalDst;
+}
+
+int rob(std::vector<int>& nums) {
+  if (nums.size() <= 2)
+    return nums.size() ? std::max(nums[0], nums[nums.size() - 1]) : 0;
+  std::vector<int> memo = { 0, nums[0] };
+  memo.resize(nums.size() + 1);
+  for (unsigned i = 2; i < memo.size(); i++)
+    memo[i] = std::max(memo[i - 1], memo[i - 2] + nums[i - 1]);
+  return memo.back();
+}
+
+int longestCommonSubsequence(std::string text1, std::string text2) {
+  int memo[text1.size() + 1][text2.size() + 1];
+  bzero(memo, sizeof(memo));
+
+  for (unsigned i = 1; i < text1.size() + 1; i++)
+    for (unsigned j = 1; j < text2.size() + 1; j++)
+      memo[i][j] = text1[i - 1] == text2[j - 1]
+                       ? memo[i - 1][j - 1] + 1
+                       : std::max(memo[i][j - 1], memo[i - 1][j]);
+
+  return memo[text1.size()][text2.size()];
 }
 
 int main() {

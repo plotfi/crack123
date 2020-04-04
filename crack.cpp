@@ -1347,6 +1347,61 @@ int longestCommonSubsequence(std::string text1, std::string text2) {
   return memo[text1.size()][text2.size()];
 }
 
+
+std::vector<int> MergeSort(std::vector<int> &a, std::vector<int> &b);
+std::vector<int> MergeSort(std::vector<int> &a) {
+  const size_t n = a.size();
+
+  if (n == 1 || n == 2) {
+    if (n == 2 && a[0] > a[1])
+      std::reverse(a.begin(), a.end());
+    return a;
+  }
+
+  std::vector<int> b;
+  auto II = a.begin() + (n/2);
+  std::copy(II, a.end(), std::back_inserter(b));
+  a.erase(a.begin() + (n/2), a.end());
+
+  return MergeSort(a, b);
+}
+
+std::vector<int> Merge(std::vector<int> &a, std::vector<int> &b) {
+  std::vector<int> c;
+
+  for (auto IA = a.begin(), IB = b.begin();
+       IA != a.end() || IB != b.end();) {
+    if (IA != a.end() && IB != b.end()) {
+      if (*IA < *IB) {
+        c.push_back(*IA);
+        IA++;
+      } else if (*IB < *IA) {
+        c.push_back(*IB);
+        IB++;
+      } else {
+        c.push_back(*IA);
+        c.push_back(*IB);
+        IA++;
+        IB++;
+      }
+    } else if (IA != a.end()) {
+      c.push_back(*IA);
+      IA++;
+    } else if (IB != b.end()) {
+      c.push_back(*IB);
+      IB++;
+    }
+  }
+
+  return c;
+}
+
+std::vector<int> MergeSort(std::vector<int> &a, std::vector<int> &b) {
+  auto sorta = MergeSort(a);
+  auto sortb = MergeSort(b);
+  return Merge(sorta, sortb);
+}
+
 int main() {
   printf("hello\n");
   std::string in = "foo";
@@ -1602,6 +1657,14 @@ int main() {
   mymemcpy(buffer, sofa2, 26);
   std::cout << "printing message: " << (char *)buffer << "\n";
   std::cout << "\n";
+  std::cout << "\n";
+  std::cout << "MergeSort";
+
+  std::vector<int> v = {5,2,7,9,4,8,9,2,2,4,6,8,3,6,8,9,32112,6,6,3};
+  for (auto i : MergeSort(v))
+      std::cout << " " << i;
+  std::cout << "\n";
+
   std::cout << "\n";
   std::cout << "\n";
 }
